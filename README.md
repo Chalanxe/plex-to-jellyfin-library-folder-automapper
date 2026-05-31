@@ -2,7 +2,7 @@
 
 A lightweight Python utility to automatically reuse your Plex library structure and folder paths at Jellyfin. 
 
-* If a library configuration exists in Plex but is **missing** in Jellyfin, it automatically creates the Virtual Folder shell.
+* If a library configuration exists in Plex but is **missing** in Jellyfin, it automatically creates the same.
 * If the library **already exists** in Jellyfin, it bypasses creation but still updates and maps all corresponding media paths.
 
 > ℹ️ **Compatibility Note:** Tested only on Windows installations for both Plex and Jellyfin.
