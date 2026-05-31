@@ -1,7 +1,9 @@
+Tested only on windows
+
 ## ⚙️ Setup & Configuration
 
-1. Open the script file (`plex-to-jellyfin-automapper.py`).
-2. Update the configuration variables at the very top of the script:
+#1. Open the script file (`plex-to-jellyfin-automapper.py`).
+#2. Update the configuration variables at the very top of the script:
 
 ```python
 # === CONFIGURATION ===
@@ -11,7 +13,7 @@ JELLYFIN_URL = "http://YOUR_JELLYFIN_IP:8096"
 JELLYFIN_API_KEY = "YOUR_JELLYFIN_API_KEY"
 # =====================
 ```
-🔑 Finding Your Credentials
+#🔑 Finding Your Credentials
 Plex Token: Follow the Official Plex Guide to locate your token using any media item's XML view.
 
 Jellyfin API Key: In your Jellyfin dashboard, navigate to Administration ➡️ Dashboard ➡️ API Keys, and create a new key (e.g., named PlexSync).
@@ -20,16 +22,19 @@ Jellyfin API Key: In your Jellyfin dashboard, navigate to Administration ➡️ 
 🐳 Docker Volume Translation (Optional)
 If your Plex server utilizes native absolute paths (e.g., /volume1/Media/Movies) but Jellyfin runs inside a Docker container with a different volume mount (e.g., /data/movies), uncomment and modify the translation block inside the script:
 
-Python
-# === DOCKER PATH MAPPING TRANSLATION (IF NEEDED) ===
+ DOCKER PATH MAPPING TRANSLATION (IF NEEDED)
 path = path.replace("/volume1/Media/Movies", "/data/movies")
-# ====================================================
-3. 🚀 Usage
+
+
+#3. 🚀 Usage
 Execute the script directly from your terminal or command prompt:
 
+```python
 python plex-to-jellyfin-automapper.py
+```
 
 📄 Expected Output Log
+
 ```python
 [*] Extracting library map structures from Plex...
 [*] Fetching existing libraries from Jellyfin...
