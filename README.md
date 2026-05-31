@@ -41,9 +41,9 @@ python plex-to-jellyfin-automapper.py
 [*] Fetching existing libraries from Jellyfin...
 [*] Syncing and mapping 3 libraries...
 [*] Library 'Movies' already exists. Proceeding to update path mappings.
-   [+] Attached/verified path: /mnt/share/Movies
+   [+] Attached/verified path: /$media/share/Movies
 [*] Created missing library container: 'Anime Shows'
-   [+] Attached/verified path: /mnt/share/Anime
+   [+] Attached/verified path: /$media/share/Anime
 [+] Triggered global scan. Jellyfin is now parsing your files.
 ```
 
