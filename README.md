@@ -76,10 +76,3 @@ python -m plex-to-jellyfin-library-automapper.py
    [+] Attached/verified path: /$Drive/$Media/TV Shows
 [+] Triggered global scan. Jellyfin is now parsing your files.
 ```
-
----
-
-## 📄 License
-
-This project is open-source and available under the **MIT License**. Feel free to modify, distribute, and adapt it to your personal homelab environment!
-```
