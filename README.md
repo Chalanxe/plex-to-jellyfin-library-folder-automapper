@@ -14,11 +14,11 @@ JELLYFIN_URL = "http://YOUR_JELLYFIN_IP:8096"
 JELLYFIN_API_KEY = "YOUR_JELLYFIN_API_KEY"
 # =====================
 ```
-#🔑 Finding Your Credentials
+##🔑 Finding Your Credentials
 
-Plex Token: Follow the Official Plex Guide to locate your token using any media item's XML view.
+**Plex Token**: Follow the Official Plex Guide to locate your token using any media item's XML view.
 
-Jellyfin API Key: In your Jellyfin dashboard, navigate to Administration ➡️ Dashboard ➡️ API Keys, and create a new key (e.g., named PlexSync).
+**Jellyfin API Key**: In your Jellyfin dashboard, navigate to Administration ➡️ Dashboard ➡️ API Keys, and create a new key (e.g., named PlexSync).
 
 
 🐳 Docker Volume Translation (Optional)
