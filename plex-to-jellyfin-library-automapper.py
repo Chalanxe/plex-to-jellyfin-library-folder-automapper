@@ -145,7 +145,7 @@ def sync_and_map_library(lib, existing_jellyfin_libs):
 
     folder_info = existing_jellyfin_libs.get(clean_name.lower(), {})
     
-    # CRITICAL: We MUST use the GUID (ItemId) to prevent 400 validation errors.
+    # CRITICAL: We MUST use the GUID (ItemId) to target the APIs
     item_id = folder_info.get("ItemId") or folder_info.get("itemId")
     
     if not item_id:
@@ -185,19 +185,14 @@ def sync_and_map_library(lib, existing_jellyfin_libs):
     else:
         sub_lang = base_lang
 
-    # === STEP 3: SURGICAL IN-PLACE OPTIONS UPDATE ===
-    # We fetch the exact schema dictionary the server gave us, with no recursive case 
-    # mangling, so C# Enum mappings (like TypeOptions) remain perfectly intact.
+    # === STEP 3: UPDATE SCANNER CONFIGURATIONS (Dashboard -> Manage Library) ===
     existing_lib_opts = folder_info.get("LibraryOptions") or folder_info.get("libraryOptions") or {}
 
     safe_set_key(existing_lib_opts, "PreferredMetadataLanguage", base_lang)
     safe_set_key(existing_lib_opts, "PreferredImageLanguage", base_lang)
     safe_set_key(existing_lib_opts, "MetadataCountryCode", country_code)
-    
-    # Preferred Download Language requires an array of 3-letter strings
     safe_set_key(existing_lib_opts, "SubtitleDownloadLanguages", [sub_lang] if sub_lang else [])
 
-    # The backend DTO expects an `Id` and `LibraryOptions` object.
     body_options = {
         "Id": item_id,
         "LibraryOptions": existing_lib_opts
@@ -207,13 +202,50 @@ def sync_and_map_library(lib, existing_jellyfin_libs):
     try:
         res_lang = requests.post(url_options, headers=headers, json=body_options, timeout=REQUEST_TIMEOUT)
         if res_lang.status_code in [200, 204]:
-            print(f"   [+] Synced options -> Metadata: '{base_lang}', Region: '{country_code}' (Subs: '{sub_lang}')", flush=True)
+            print(f"   [+] Synced Scanner settings -> Metadata: '{base_lang}', Region: '{country_code}' (Subs: '{sub_lang}')", flush=True)
         else:
-            print(f"   [-] Failed syncing language settings: {res_lang.status_code} - {res_lang.text}", flush=True)
+            print(f"   [-] Failed syncing Scanner settings: {res_lang.status_code} - {res_lang.text}", flush=True)
     except Exception as e:
         print(f"   [-] Error sending language options request: {e}", flush=True)
 
-    # === STEP 4: UPDATE PATH MAPPINGS ===
+
+    # === STEP 4: UPDATE METADATA MANAGER ENTITY (Metadata Manager -> Media -> Library) ===
+    # Jellyfin's Items API strictly requires a UserId context to retrieve a single item without throwing a 400.
+    try:
+        # 1. Fetch an admin user ID to provide an authorized route context
+        res_users = requests.get(f"{JELLYFIN_URL}/Users", headers=headers, timeout=REQUEST_TIMEOUT)
+        if res_users.status_code == 200 and res_users.json():
+            # Grab the first user's ID
+            user_id = res_users.json()[0].get("Id") or res_users.json()[0].get("id")
+            
+            # 2. Fetch the entire original item so we don't accidentally wipe its other properties
+            url_item = f"{JELLYFIN_URL}/Users/{user_id}/Items/{item_id}"
+            res_item = requests.get(url_item, headers=headers, timeout=REQUEST_TIMEOUT)
+            
+            if res_item.status_code == 200:
+                item_data = res_item.json()
+                
+                # Use safe_set_key to apply the matching JSON casing that Jellyfin returned
+                safe_set_key(item_data, "PreferredMetadataLanguage", base_lang)
+                safe_set_key(item_data, "PreferredMetadataCountryCode", country_code)
+                
+                # 3. Post the fully updated item entity back to the database
+                url_update = f"{JELLYFIN_URL}/Items/{item_id}"
+                res_item_post = requests.post(url_update, headers=headers, json=item_data, timeout=REQUEST_TIMEOUT)
+                
+                if res_item_post.status_code in [200, 204]:
+                    print(f"   [+] Synced Metadata Manager entity to match language settings.", flush=True)
+                else:
+                    print(f"   [-] Failed updating Metadata Manager entity: {res_item_post.status_code} - {res_item_post.text}", flush=True)
+            else:
+                print(f"   [-] Failed to fetch Metadata Manager entity for '{clean_name}'. Status Code: {res_item.status_code}", flush=True)
+        else:
+             print(f"   [-] Could not resolve User ID for API lookup. Status: {res_users.status_code}", flush=True)
+    except Exception as e:
+        print(f"   [-] Error interacting with Items API: {e}", flush=True)
+
+
+    # === STEP 5: UPDATE PATH MAPPINGS ===
     url_add_path = f"{JELLYFIN_URL}/Library/VirtualFolders/Paths"
     for path in lib["paths"]:
         body_path = {
