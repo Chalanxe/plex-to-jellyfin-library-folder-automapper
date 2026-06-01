@@ -4,8 +4,8 @@ A lightweight Python utility to automatically reuse your Plex library structure 
 
 * If a library configuration exists in Plex but is **missing** in Jellyfin, it automatically creates the same.
 * If the library **already exists** in Jellyfin, it bypasses creation but still updates and maps all corresponding media paths.
-* Automatically syncs the preferred metadata language for each library, converting Plex language tags to Jellyfin-compatible ISO 639-2 codes.
-
+* Automatically syncs preferred metadata and country languages.*
+  
 > ℹ️ **Compatibility Note:** Tested only on Windows installations for both Plex and Jellyfin.
 
 ---
