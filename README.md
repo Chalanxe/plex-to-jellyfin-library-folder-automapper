@@ -18,8 +18,6 @@ A lightweight Python utility to automatically reuse your Plex library structure 
 * **Full Language Support:** Automatically converts Plex language tags (ISO 639-1, BCP 47 regional tags like `en-US`) to Jellyfin-compatible ISO 639-2 codes for all ~500 languages in the ISO 639 standard. Requires `pycountry` — see [Dependencies](#-dependencies).
 * **Metadata Language Sync:** Writes the resolved language code directly to each library's Jellyfin options so metadata providers fetch results in the correct language.
 * **Automatic Library Scan:** Triggers a global Jellyfin refresh immediately after mapping is complete so your content populates right away.
-* **Docker Ready:** Includes a commented translation section to adapt host-level paths to Docker container volumes if needed.
-
 ---
 
 ## 📦 Dependencies
