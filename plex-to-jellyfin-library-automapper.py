@@ -111,19 +111,24 @@ def get_plex_libraries():
 
 
 def get_jellyfin_libraries():
-    """Fetches existing virtual folders from Jellyfin."""
+    """
+    Fetches existing virtual folders from Jellyfin.
+    Returns a dict mapping lowercased library name → full folder object.
+    The folder object contains ItemId (GUID) and LibraryOptions, both needed
+    to correctly update language settings without a 400 error.
+    """
     headers = {"X-MediaBrowser-Token": JELLYFIN_API_KEY}
     try:
         response = requests.get(f"{JELLYFIN_URL}/Library/VirtualFolders", headers=headers, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         folders = response.json()
         return {
-            (folder.get("Name") or folder.get("name", "")).strip().lower()
-            for folder in folders if folder
+            (f.get("Name") or f.get("name", "")).strip().lower(): f
+            for f in folders if f
         }
     except Exception as e:
         print(f"[-] Error fetching existing libraries from Jellyfin: {e}")
-        return set()
+        return {}
 
 
 def sync_and_map_library(lib, existing_jellyfin_libs):
@@ -151,16 +156,27 @@ def sync_and_map_library(lib, existing_jellyfin_libs):
         except Exception as e:
             print(f"[-] Error creating library '{clean_name}': {e}")
             return
+        # Re-fetch so the new library's ItemId and LibraryOptions are available below
+        existing_jellyfin_libs = get_jellyfin_libraries()
     else:
         print(f"[*] Library '{clean_name}' already exists. Updating settings and mappings.")
 
+    # Resolve the full folder object — needed for ItemId and existing LibraryOptions
+    existing_folder = existing_jellyfin_libs.get(clean_name.lower()) or {}
+
     # === STEP 2: UPDATE METADATA LANGUAGE ===
+    # FIX 1: Id must be the GUID (ItemId), not the display name.
+    # FIX 2: Jellyfin replaces the entire LibraryOptions object on POST — sending only
+    #         PreferredMetadataLanguage causes a 400. Fetch the existing options first
+    #         and merge the change in so no other settings are wiped.
+    item_id = existing_folder.get("ItemId") or existing_folder.get("itemId", "")
+    existing_options = existing_folder.get("LibraryOptions") or {}
+    merged_options = {**existing_options, "PreferredMetadataLanguage": lib["language"]}
+
     url_options = f"{JELLYFIN_URL}/Library/VirtualFolders/LibraryOptions"
     body_options = {
-        "Id": clean_name,
-        "LibraryOptions": {
-            "PreferredMetadataLanguage": lib["language"]
-        }
+        "Id": item_id,
+        "LibraryOptions": merged_options
     }
     try:
         res_lang = requests.post(url_options, headers=headers, json=body_options, timeout=REQUEST_TIMEOUT)
